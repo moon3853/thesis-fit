@@ -1,0 +1,16 @@
+# 키·토큰 — 절대 커밋 금지
+telegram_config.py
+*_config.py
+!telegram_config.example.py
+*.key
+*.pem
+.env
+
+# 실행 중 쌓이는 데이터 (결과 예시는 results/에 따로 둠)
+agent/data/
+backtest/data/
+모의투자데이터/
+
+# 파이썬
+__pycache__/
+*.pyc
