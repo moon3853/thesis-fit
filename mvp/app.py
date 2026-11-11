@@ -439,6 +439,8 @@ class H(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path in ("/", "/index.html"):
             self._send(200, open(os.path.join(HERE, "index.html"), "rb").read(), "text/html; charset=utf-8")
+        elif path == "/summary":                            # 한눈에 보기(카드 4장) — 기획서용 화면
+            self._send(200, open(os.path.join(HERE, "summary.html"), "rb").read(), "text/html; charset=utf-8")
         elif path == "/api/state":
             self._send(200, state())
         else:

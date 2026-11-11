@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Thesis Fit MVP — 한눈에 보기</title>
+<style>
+  /* 한눈에 보기: 지금 상태를 카드 4장(각 470×160)으로 요약한다. 기획서에 넣을 때 글이 중간에 잘리지 않게 줄 수를 제한한다. */
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#fff; color:#152238; font:12.5px/1.45 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif; }
+  .row{ display:flex; width:1880px; height:160px; }
+  .card{ width:470px; height:160px; padding:9px 12px 8px; border:1px solid #c9d6e8; background:#fff; overflow:hidden; }
+  .card + .card{ border-left:none; }
+  h2{ font-size:13px; margin:0 0 5px; color:#0f2a4d; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  h2 .n{ background:#0f2a4d; color:#fff; border-radius:999px; width:17px; height:17px; display:inline-flex; align-items:center; justify-content:center; font-size:10.5px; }
+  h2 .s{ font-weight:400; color:#63708a; font-size:11.5px; }
+  .l{ display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+  .l1{ -webkit-line-clamp:1; } .l2{ -webkit-line-clamp:2; }
+  .dim{ color:#63708a; }
+  .chip{ display:inline-block; background:#eef4fc; color:#0f2a4d; border-radius:999px; padding:0 7px; margin-right:3px; font-size:11.5px; }
+  .tag{ font-size:11px; font-weight:700; border-radius:5px; padding:0 6px; margin-right:5px; color:#fff; }
+  .re{ background:#c8372d; } .up{ background:#b86a00; } .no{ background:#9aa5b8; }
+  .ok{ color:#1f8a4c; font-weight:700; } .bad{ color:#c8372d; font-weight:700; }
+  .q{ font-style:italic; color:#33415c; border-left:3px solid #dfe5ee; padding-left:7px; margin:3px 0; }
+  table{ border-collapse:collapse; width:100%; }
+  td{ padding:1.5px 4px; border-bottom:1px solid #e6ebf2; white-space:nowrap; }
+  .g{ background:#eaf6ee; border-radius:7px; padding:5px 8px; }
+  b.k{ color:#0f2a4d; }
+</style>
+</head>
+<body>
+<div class="row" id="row"></div>
+<script>
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tag = a => a === "재검토 필요" ? '<span class="tag re">재검토 필요</span>' : a === "의견 갱신" ? '<span class="tag up">의견 갱신</span>' : '<span class="tag no">영향 없음</span>';
+(async () => {
+  const S = await (await fetch("/api/state")).json();
+  const p = S.profile || {tickers: [], theses: [], keywords: []};
+  const live = S.filings.filter(f => f.src === "실시간"), demo = S.filings.filter(f => f.src === "시연");
+  const r = S.last, rec = r && (r.second || r.first), k = rec && (rec.cards.find(c => c.quote_ok) || rec.cards[0]), x = S.rsi[0];
+  const c1 = `<h2><span class="n">1</span>AI 인터뷰 → 내 에이전트 설정 <span class="s">${S.version}판</span></h2>
+    <div class="l l1"><b class="k">대상</b> ${p.tickers.map(t => `<span class="chip">${esc(S.names[t] || t)}</span>`).join("")}</div>
+    <div class="l l1" style="margin-top:3px;"><b class="k">주기</b> 심층 리서치 ${esc(p.research_time)} · 속보 ${esc(p.flash_minutes)}분마다 &nbsp; <b class="k">검색어</b> ${p.keywords.length}개</div>
+    ${p.theses.slice(0, 4).map(t => `<div class="l l1" style="margin-top:3px;"><b class="k">${esc(t.id)}</b> ${esc(t.text)} <span class="dim">· ${esc(t.mode)}</span></div>`).join("")}`;
+  const rows = live.slice(0, 3).concat(demo.slice(0, 2));
+  const c2 = `<h2><span class="n">2</span>공시 수집 <span class="s">SEC EDGAR API · 실시간 ${live.length}건 + 과거 ${demo.length}건</span></h2>
+    <table>${rows.map(f => `<tr><td>${esc(f.accepted)}</td><td>${esc(f.name)}</td><td>${esc(f.form)}</td><td class="dim">${esc(f.src)}</td><td>${f.judged ? '<span class="ok">판정 완료</span>' : '<span class="dim">판정 대기</span>'}</td></tr>`).join("")}</table>`;
+  const c3 = k ? `<h2><span class="n">3</span>판정·출처 대조 <span class="s">${esc(S.names[r.tk] || r.tk)} ${esc(r.form)} · 원문 ${Number(r.chars).toLocaleString()}자</span></h2>
+    <div class="l l2">${tag(k.action)}<b class="k">${esc(k.thesis_id)}</b> ${esc(k.summary)}</div>
+    <div class="q l l2">“${esc(k.quote)}”</div>
+    <div class="l l1">${k.quote_ok ? '<span class="ok">✓ 원문 일치</span>' : '<span class="bad">✗ 원문에 없음</span>'} <span class="dim">프로그램 코드가 대조 · ${rec.use.sec}초 · $${rec.use.usd.toFixed(3)} · 봉인 ${esc(rec.hash.slice(0, 10))}</span></div>`
+    : `<h2><span class="n">3</span>판정·출처 대조</h2><div class="dim">아직 판정이 없습니다.</div>`;
+  const c4 = x ? `<h2><span class="n">4</span>자기 개선 (RSI) <span class="s">${esc(x.tk)} ${esc(x.form)} · 설정 ${x.version[0]}판 → ${x.version[1]}판 자동 저장</span></h2>
+    <div class="g">
+      <div class="l l1"><b class="k">놓칠 뻔한 곳</b> 읽지 않은 뒤쪽의 ${x.unread.slice(0, 3).map(u => "‘" + esc(u.kw) + "’").join(", ")} 등 ${x.unread.length}곳</div>
+      <div class="l l2" style="margin-top:2px;"><b class="k">원인</b> ${esc(x.retro.cause)}</div>
+      <div class="l l2" style="margin-top:2px;"><b class="k">고친 것</b> ${esc(x.retro.change)}</div>
+    </div>`
+    : `<h2><span class="n">4</span>자기 개선 (RSI)</h2><div class="dim">아직 스스로 고친 기록이 없습니다.</div>`;
+  document.getElementById("row").innerHTML = [c1, c2, c3, c4].map(c => `<div class="card">${c}</div>`).join("");
+})();
+</script>
+</body>
+</html>
