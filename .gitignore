@@ -14,3 +14,7 @@ backtest/data/
 # 파이썬
 __pycache__/
 *.pyc
+
+# MVP 실행 중 쌓이는 개인 메모리(DB)·로그
+mvp/data/
+mvp/server.log

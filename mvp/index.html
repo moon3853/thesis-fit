@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thesis Fit MVP</title>
+<style>
+  :root{ --bg:#f4f6fa; --card:#fff; --line:#dfe5ee; --ink:#152238; --dim:#63708a; --navy:#0f2a4d; --blue:#1f6fd1;
+         --green:#1f8a4c; --red:#c8372d; --amber:#b86a00; --tint:#eef4fc; --gtint:#eaf6ee; --rtint:#fdeeed; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:14px/1.55 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif; }
+  header{ background:var(--navy); color:#fff; padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  header h1{ font-size:18px; margin:0; letter-spacing:-.01em; }
+  header .sub{ font-size:12.5px; opacity:.8; }
+  header .cost{ margin-left:auto; font-size:12.5px; background:rgba(255,255,255,.12); padding:6px 12px; border-radius:999px; }
+  .flow{ display:flex; gap:6px; padding:12px 24px 0; flex-wrap:wrap; font-size:12.5px; color:var(--dim); }
+  .flow b{ background:var(--card); border:1px solid var(--line); border-radius:999px; padding:4px 12px; color:var(--navy); font-weight:600; }
+  .flow b.on{ background:var(--navy); color:#fff; border-color:var(--navy); }
+  main{ display:grid; grid-template-columns:minmax(300px,1fr) minmax(300px,1fr) minmax(340px,1.25fr); gap:16px; padding:14px 24px 40px; align-items:start; }
+  @media (max-width:1100px){ main{ grid-template-columns:1fr; } }
+  section{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  h2{ font-size:15px; margin:0 0 10px; color:var(--navy); display:flex; align-items:center; gap:8px; }
+  h2 .n{ background:var(--navy); color:#fff; border-radius:999px; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; }
+  h3{ font-size:13px; margin:14px 0 6px; color:var(--navy); }
+  label{ display:block; font-size:12.5px; color:var(--dim); margin:8px 0 3px; }
+  input[type=text], textarea{ width:100%; border:1px solid var(--line); border-radius:9px; padding:8px 10px; font:inherit; color:inherit; background:#fff; }
+  textarea{ min-height:120px; resize:vertical; }
+  button{ font:inherit; font-weight:600; border-radius:9px; border:1px solid var(--line); background:#fff; color:var(--navy); padding:8px 14px; cursor:pointer; }
+  button.pri{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  button.sm{ padding:4px 10px; font-size:12.5px; }
+  button:disabled{ opacity:.5; cursor:default; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  .dim{ color:var(--dim); font-size:12.5px; }
+  .chip{ display:inline-block; background:var(--tint); color:var(--navy); border-radius:999px; padding:2px 10px; font-size:12.5px; margin:2px 4px 2px 0; }
+  .box{ border:1px solid var(--line); border-radius:11px; padding:10px 12px; margin-top:8px; background:#fff; }
+  .box.g{ background:var(--gtint); border-color:#bfe3cb; } .box.b{ background:var(--tint); border-color:#c9dcf5; } .box.r{ background:var(--rtint); border-color:#f3c9c5; }
+  .tag{ font-size:12px; font-weight:700; border-radius:6px; padding:1px 7px; margin-right:6px; }
+  .tag.re{ background:var(--red); color:#fff; } .tag.up{ background:var(--amber); color:#fff; } .tag.no{ background:#9aa5b8; color:#fff; }
+  .ok{ color:var(--green); font-weight:700; } .bad{ color:var(--red); font-weight:700; }
+  .quote{ font-size:12.5px; color:#33415c; border-left:3px solid var(--line); padding-left:9px; margin:6px 0; font-style:italic; }
+  table{ border-collapse:collapse; width:100%; font-size:12.5px; }
+  th,td{ text-align:left; padding:5px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ color:var(--dim); font-weight:600; }
+  .msg{ font-size:12.5px; margin-top:8px; min-height:18px; color:var(--dim); }
+  .msg.err{ color:var(--red); }
+  .spin{ display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:sp 0.8s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes sp{ to{ transform:rotate(360deg); } }
+  footer{ padding:0 24px 28px; color:var(--dim); font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Thesis Fit <span style="font-weight:400;opacity:.8;">MVP</span></h1>
+  <span class="sub">공시로 내 투자 근거를 점검하는 개인 맞춤 에이전트</span>
+  <span class="cost" id="cost">AI 사용 —</span>
+</header>
+<div class="flow" id="flow"></div>
+<main>
+  <div>
+    <section>
+      <h2><span class="n">1</span>AI 인터뷰</h2>
+      <label>관심 분야와 투자 근거를 알려주시겠어요?</label>
+      <input type="text" id="q1" value="반도체·AI 인프라요. 투자 근거는 아래에 적었어요.">
+      <label>심층 리서치는 언제 정리해 드릴까요?</label>
+      <input type="text" id="q2" value="매일 07:30, 또는 ‘지금 조사해’라고 할 때요.">
+      <label>속보는 얼마나 자주 확인할까요?</label>
+      <input type="text" id="q3" value="5분마다요. 장중엔 1분마다 확인해 주세요.">
+      <label>내 투자 근거 <span class="dim">(직접 쓰거나 글 파일을 올리세요)</span></label>
+      <textarea id="thesis">1. 빅테크 4사(구글·MS·아마존·메타)의 AI 설비투자는 내년에도 늘어난다. 설비투자 전망을 낮추면 다시 봐야 한다.
+2. 메모리 업황은 좋다. 마이크론의 다음 분기 매출 전망이 시장 예상보다 낮으면 다시 본다.
+3. 미국의 대중국 수출 규제가 엔비디아·AMD 실적에 주는 영향은 제한적이다. 규제 때문에 비용이 생기면 예상 최대치와 실제 비용을 구분해서 알고 싶다.</textarea>
+      <div class="row"><input type="file" id="file" accept=".txt,.md,.csv" style="font-size:12.5px;"></div>
+      <div class="row"><button class="pri" id="btnInterview">설정 초안 만들기</button><span class="dim">Claude가 답변과 투자 근거를 읽고 초안을 만듭니다</span></div>
+      <div class="msg" id="msg1"></div>
+    </section>
+    <section style="margin-top:16px;">
+      <h2><span class="n">2</span>내 에이전트 설정 <span class="dim" id="ver" style="font-weight:400;"></span></h2>
+      <div id="profile"><span class="dim">아직 설정이 없습니다. 인터뷰부터 해 주세요.</span></div>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2><span class="n">3</span>공시 수집 <span class="dim" style="font-weight:400;">SEC EDGAR API</span></h2>
+      <div class="row" style="margin-top:0;">
+        <button id="btnLive">새 공시 확인 (실시간)</button>
+        <button id="btnDemo">과거 공시 3건 불러오기 (시연)</button>
+      </div>
+      <div class="msg" id="msg2"></div>
+      <div id="filings"></div>
+    </section>
+    <section style="margin-top:16px;">
+      <h2><span class="n">5</span>자기 개선 (RSI)</h2>
+      <div id="rsi"><span class="dim">아직 스스로 고친 기록이 없습니다.</span></div>
+      <h3>운용역 코멘트 <span class="dim" style="font-weight:400;">(선택 — 다음 판정에 반영)</span></h3>
+      <div class="row" style="margin-top:0;"><input type="text" id="fb" placeholder="예: 금액은 항상 달러와 원화로 같이 적어 줘" style="flex:1;min-width:180px;"><button class="sm" id="btnFb">남기기</button></div>
+      <div id="fblist" class="dim" style="margin-top:6px;"></div>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2><span class="n">4</span>판정 결과와 개인 메모리</h2>
+      <div id="result"><span class="dim">공시를 골라 ‘판정’을 누르면 여기에 결과가 나옵니다.</span></div>
+      <h3>개인 메모리 — 투자 근거별 지난 의견</h3>
+      <div id="memory"><span class="dim">아직 기록이 없습니다.</span></div>
+      <h3>AI 호출 기록</h3>
+      <div id="runs"></div>
+      <div class="row"><button class="sm" id="btnReset">처음부터 다시 (기록 지우기)</button></div>
+    </section>
+  </div>
+</main>
+<footer>투자 조언이 아닙니다. 판정은 ‘재검토 필요 / 의견 갱신 / 영향 없음’ 제안까지만 하고, 인용 문장은 프로그램 코드가 원문과 대조합니다. 데이터: SEC EDGAR 공개 공시.</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let S = null, draft = null, lastRun = null, busy = false;
+
+async function api(path, body){
+  const r = await fetch(path, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+  const j = await r.json();
+  if(j.error) throw new Error(j.error);
+  return j;
+}
+function say(id, text, err, spin){ const e = $(id); e.className = "msg" + (err ? " err" : ""); e.innerHTML = (spin ? '<span class="spin"></span>' : "") + esc(text); }
+function lock(on){ busy = on; document.querySelectorAll("button").forEach(b => b.disabled = on); }
+const tagOf = a => a === "재검토 필요" ? '<span class="tag re">재검토 필요</span>' : a === "의견 갱신" ? '<span class="tag up">의견 갱신</span>' : '<span class="tag no">영향 없음</span>';
+const money = u => "$" + Number(u || 0).toFixed(3);
+
+function renderProfile(p, isDraft){
+  if(!p) return '<span class="dim">아직 설정이 없습니다. 인터뷰부터 해 주세요.</span>';
+  const th = p.theses.map(t => `<tr><td><b>${esc(t.id)}</b></td><td>${esc(t.text)}<div class="dim">다시 볼 조건: ${esc(t.recheck)}</div></td><td>${esc(t.mode)}</td></tr>`).join("");
+  const read = (p.read || {}).mode === "search" ? "검색으로 골라 읽기 (앞부분 + 검색어 점수가 높은 구간)" : "앞에서부터 읽기 (공시 1건당 4만 자까지)";
+  return `<div class="box ${isDraft ? "b" : ""}">
+    <div><b>대상</b> ${p.tickers.map(t => `<span class="chip">${esc((S && S.names[t]) || t)} · ${esc(t)}</span>`).join("")}</div>
+    <div style="margin-top:6px;"><b>주기</b> 심층 리서치 ${esc(p.research_time)} · 속보 ${esc(p.flash_minutes)}분마다</div>
+    <div style="margin-top:6px;"><b>검색어</b> ${p.keywords.map(k => `<span class="chip">${esc(k)}</span>`).join("")}</div>
+    <div style="margin-top:6px;"><b>읽는 방식</b> ${read}</div>
+    <table style="margin-top:8px;"><tr><th>ID</th><th>내 투자 근거</th><th>모드</th></tr>${th}</table>
+    ${p.note ? `<div class="dim" style="margin-top:6px;">AI가 확인받고 싶은 점: ${esc(p.note)}</div>` : ""}
+    ${isDraft ? '<div class="row"><button class="pri" onclick="approve()">이 설정으로 공시·뉴스 모니터링 시작</button><span class="dim">초안입니다. 확정해야 저장됩니다</span></div>' : ""}
+  </div>`;
+}
+
+function renderRun(r){
+  if(!r) return "";
+  const block = (rec, title) => {
+    if(!rec) return "";
+    const cards = rec.cards.map(k => `<div class="box ${k.action === "재검토 필요" ? "r" : ""}">
+        <div>${tagOf(k.action)}<b>${esc(k.thesis_id)}</b> ${esc(k.summary)}</div>
+        ${k.figures ? `<div style="margin-top:4px;"><b>수치</b> ${esc(k.figures)}</div>` : ""}
+        ${k.quote ? `<div class="quote">“${esc(k.quote)}”</div><div>${k.quote_ok ? '<span class="ok">✓ 원문 일치</span>' : '<span class="bad">✗ 원문에 없음</span>'} <span class="dim">프로그램 코드가 원문과 대조</span></div>` : '<div class="dim">인용 없음</div>'}
+        ${k.next ? `<div class="dim" style="margin-top:4px;">다음: ${esc(k.next)}</div>` : ""}
+      </div>`).join("") || '<div class="dim">카드 없음</div>';
+    return `<h3>${title}</h3><div class="dim">읽은 범위: ${esc(rec.read)} · ${rec.use.sec}초 · ${money(rec.use.usd)} · 입력 ${rec.use.tok_in.toLocaleString()} 토큰 · 봉인 ${esc(rec.hash.slice(0,12))}</div>${cards}`;
+  };
+  let h = (r.tk ? `<div><b>${esc((S.names && S.names[r.tk]) || r.tk)} ${esc(r.form)}</b> <span class="dim">접수 ${esc(r.accepted)} (한국 시간) · 원문 ${Number(r.chars || 0).toLocaleString()}자</span></div>` : "")
+        + block(r.first, r.rsi ? "① 처음 판정" : "판정");
+  if(r.rsi){
+    const x = r.rsi;
+    h += `<h3>② 스스로 돌아보기 (RSI)</h3><div class="box g">
+      <div><b>놓칠 뻔한 곳</b> 읽지 않은 뒤쪽에 ${x.unread.map(u => `‘${esc(u.kw)}’(${u.pos.toLocaleString()}번째 글자)`).join(", ")}</div>
+      <div style="margin-top:4px;"><b>원인</b> ${esc(x.retro.cause)}</div>
+      <div style="margin-top:4px;"><b>고친 것</b> ${esc(x.retro.change)} ${x.added.length ? " · 검색어 추가: " + x.added.map(esc).join(", ") : ""}</div>
+      <div class="dim" style="margin-top:4px;">설정 ${x.version[0]}판 → ${x.version[1]}판 자동 저장 · 회고 ${money(x.use.usd)}</div></div>`;
+    h += block(r.second, "③ 고친 설정으로 다시 판정");
+  }
+  return h;
+}
+
+function render(){
+  if(!S) return;
+  $("cost").textContent = `AI 사용 ${S.cost.calls}회 · $${S.cost.usd.toFixed(3)} · ${S.cost.sec}초`;
+  $("ver").textContent = S.profile ? `(${S.version}판)` : "";
+  $("profile").innerHTML = draft ? renderProfile(draft, true) : renderProfile(S.profile, false);
+  const steps = [["인터뷰", !!(S.profile || draft)], ["설정 확정", !!S.profile], ["공시 수집", S.filings.length > 0], ["판정·출처 대조", S.opinions.length > 0], ["개인 메모리", S.opinions.length > 0], ["RSI", S.rsi.length > 0]];
+  $("flow").innerHTML = steps.map((s, i) => `<b class="${s[1] ? "on" : ""}">${i + 1} ${s[0]}</b>`).join(" → ");
+  $("filings").innerHTML = S.filings.length ? `<table><tr><th>접수(한국 시간)</th><th>종목</th><th>공시</th><th></th></tr>` + S.filings.map(f =>
+    `<tr><td>${esc(f.accepted)}</td><td>${esc(f.name)}</td><td>${esc(f.form)}${f.items ? ` <span class="dim">${esc(f.items)}</span>` : ""}<div class="dim">${esc(f.src)}${f.chars ? " · " + f.chars.toLocaleString() + "자" : ""}</div></td>
+     <td><button class="sm ${f.judged ? "" : "pri"}" onclick="judge('${esc(f.acc)}')">${f.judged ? "다시 판정" : "판정"}</button></td></tr>`).join("") + "</table>"
+    : '<div class="dim" style="margin-top:8px;">아직 가져온 공시가 없습니다.</div>';
+  $("result").innerHTML = lastRun ? renderRun(lastRun) : '<span class="dim">공시를 골라 ‘판정’을 누르면 여기에 결과가 나옵니다.</span>';
+  const by = {};
+  S.opinions.filter(o => o.thesis_id !== "-").forEach(o => (by[o.thesis_id] = by[o.thesis_id] || []).push(o));
+  const tname = id => { const t = S.profile && S.profile.theses.find(x => x.id === id); return t ? t.text : ""; };
+  $("memory").innerHTML = Object.keys(by).length ? Object.keys(by).sort().map(id => `<div class="box"><b>${esc(id)}</b> ${esc(tname(id))}` +
+      by[id].slice(0, 5).map(o => `<div style="margin-top:6px;">${tagOf(o.action)}<span class="dim">${esc(o.accepted || o.at.slice(0,16))} · ${esc(o.tk)} ${esc(o.form)} · 설정 ${o.version}판</span><div>${esc(o.summary)}</div>${o.figures ? `<div class="dim">${esc(o.figures)}</div>` : ""}</div>`).join("") + "</div>").join("")
+    : '<span class="dim">아직 기록이 없습니다.</span>';
+  $("rsi").innerHTML = S.rsi.length ? S.rsi.map(x => `<div class="box g"><div><b>${esc(x.tk)} ${esc(x.form)}</b> <span class="dim">${esc(x.at)}</span></div>
+      <div style="margin-top:4px;">${esc(x.retro.cause)}</div><div style="margin-top:4px;"><b>고친 것</b> ${esc(x.retro.change)}</div>
+      <div class="dim" style="margin-top:4px;">고치기 전: ${x.before.map(b => esc(b.thesis_id + " " + b.action)).join(", ") || "—"} → 고친 뒤: ${x.after.map(b => esc(b.thesis_id + " " + b.action)).join(", ") || "—"}</div></div>`).join("")
+    : '<span class="dim">아직 스스로 고친 기록이 없습니다.</span>';
+  $("fblist").innerHTML = S.feedback.map(f => `· ${esc(f.body)}`).join("<br>");
+  $("runs").innerHTML = S.runs.length ? "<table><tr><th>시각</th><th>종류</th><th>걸린 시간</th><th>비용</th></tr>" + S.runs.slice(0, 8).map(r =>
+    `<tr><td>${esc(r.at.slice(5,16))}</td><td>${esc(r.kind)}</td><td>${r.sec}초</td><td>${money(r.usd)}</td></tr>`).join("") + "</table>" : '<span class="dim">아직 호출이 없습니다.</span>';
+}
+async function load(){ S = await api("/api/state"); if(!lastRun && S.last) lastRun = S.last; render(); }
+
+$("file").addEventListener("change", async e => { const f = e.target.files[0]; if(f) $("thesis").value = await f.text(); });
+$("btnInterview").onclick = async () => {
+  if(busy) return; lock(true); say("msg1", "Claude가 투자 근거를 읽고 있습니다… (10~20초)", false, true);
+  try{ const r = await api("/api/interview", {field: $("q1").value, when: $("q2").value, flash: $("q3").value, thesis: $("thesis").value});
+       draft = r.draft; say("msg1", `설정 초안 완성 · ${r.use.sec}초 · ${money(r.use.usd)}`); }
+  catch(e){ say("msg1", "실패: " + e.message, true); }
+  lock(false); await load();
+};
+async function approve(){
+  if(busy || !draft) return; lock(true);
+  try{ await api("/api/profile", {profile: draft}); draft = null; say("msg1", "설정을 확정했습니다. 이제 공시를 가져오세요."); }
+  catch(e){ say("msg1", "실패: " + e.message, true); }
+  lock(false); await load();
+}
+async function collect(mode){
+  if(busy) return; lock(true); say("msg2", "SEC에서 공시 목록을 가져오는 중…", false, true);
+  try{ const r = await api("/api/collect", {mode}); say("msg2", `새로 가져온 공시 ${r.new}건`); }
+  catch(e){ say("msg2", "실패: " + e.message, true); }
+  lock(false); await load();
+}
+$("btnLive").onclick = () => collect("live");
+$("btnDemo").onclick = () => collect("demo");
+async function judge(acc){
+  if(busy) return; lock(true); say("msg2", "원문을 받아 읽고 판정하는 중… (필요하면 스스로 고쳐 다시 판정합니다, 최대 1분)", false, true);
+  try{ lastRun = await api("/api/judge", {acc}); say("msg2", lastRun.rsi ? "판정 완료 — 스스로 설정을 고쳐 다시 판정했습니다" : "판정 완료"); }
+  catch(e){ say("msg2", "실패: " + e.message, true); }
+  lock(false); await load();
+}
+$("btnFb").onclick = async () => { const t = $("fb").value.trim(); if(!t || busy) return; await api("/api/feedback", {text: t}); $("fb").value = ""; await load(); };
+$("btnReset").onclick = async () => { if(busy || !confirm("설정·공시·의견 기록을 모두 지울까요? (AI 사용 기록은 남습니다)")) return; await api("/api/reset", {}); draft = null; lastRun = null; await load(); };
+load();
+</script>
+</body>
+</html>
